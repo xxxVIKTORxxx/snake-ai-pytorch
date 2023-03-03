@@ -1,12 +1,15 @@
 import pygame
+from pygame.locals import *
 import random
 from enum import Enum
 from collections import namedtuple
 import numpy as np
 
 pygame.init()
-font = pygame.font.Font('arial.ttf', 25)
-#font = pygame.font.SysFont('arial', 25)
+
+pygame.font.init()
+#font = pygame.font.Font('arial.ttf', 25)
+font = pygame.font.SysFont('arial', 25)
 
 class Direction(Enum):
     RIGHT = 1
@@ -19,9 +22,9 @@ Point = namedtuple('Point', 'x, y')
 # rgb colors
 WHITE = (255, 255, 255)
 RED = (200,0,0)
-BLUE1 = (0, 0, 255)
-BLUE2 = (0, 100, 255)
-BLACK = (0,0,0)
+SERP_COL_1 = (0, 255, 0)
+SERP_COL_2 = (200, 255, 200)
+SCREEN_COL = (200,200,255)
 
 BLOCK_SIZE = 20
 SPEED = 40
@@ -62,12 +65,24 @@ class SnakeGameAI:
 
 
     def play_step(self, action):
+        global SPEED
         self.frame_iteration += 1
         # 1. collect user input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
+            # speed change
+            if event.type == KEYDOWN:
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_UP]:
+                    SPEED += 10
+                    print(SPEED)
+
+                elif keys[pygame.K_DOWN]:
+                    SPEED -=10
+                    print(SPEED)
         
         # 2. move
         self._move(action) # update the head
@@ -110,18 +125,18 @@ class SnakeGameAI:
 
 
     def _update_ui(self):
-        self.display.fill(BLACK)
+        self.display.fill(SCREEN_COL)
 
         for pt in self.snake:
-            pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
-            pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
+            pygame.draw.rect(self.display, SERP_COL_1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
+            pygame.draw.rect(self.display, SERP_COL_2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
 
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
 
         text = font.render("Score: " + str(self.score), True, WHITE)
         self.display.blit(text, [0, 0])
         pygame.display.flip()
-
+                
 
     def _move(self, action):
         # [straight, right, left]
